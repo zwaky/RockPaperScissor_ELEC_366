@@ -4,21 +4,21 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class ClientServiceThread extends Thread {
+public class clientServiceThread extends Thread {
 	private String clientName; // Client's name
 	private Socket connectionSocket; // Client's connection socket
-	private ArrayList<ClientServiceThread> clients; // List of all clients connected to the server
+	private ArrayList<clientServiceThread> clients; // List of all clients connected to the server
 	private DataOutputStream outToClient;
 
-	public ClientServiceThread(int number, Socket connectionSocket, String clientName,
-			ArrayList<ClientServiceThread> clients) {
-		super("ClientServiceThread-" + clientName);
+	public clientServiceThread(int number, Socket connectionSocket, String clientName,
+			ArrayList<clientServiceThread> clients) {
+		super("clientServiceThread-" + clientName);
 		this.clientName = clientName;
 		this.connectionSocket = connectionSocket;
 		this.clients = clients;
+
 		try {
 			this.outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-			broadcastMessage(this.clientName + " connected");
 
 		} catch (IOException e) {
 			System.out.println("Error getting output stream: " + e.getMessage());
@@ -37,9 +37,6 @@ public class ClientServiceThread extends Thread {
 					// If it is a private message, the format should be "@[name] message"
 					if (clientSentence.startsWith("@")) {
 						sendPrivateMessage(clientSentence);
-					} else {
-						// Broadcast message to all clients
-						broadcastMessage(clientSentence);
 					}
 				} else {
 					// Client disconnected
@@ -62,24 +59,12 @@ public class ClientServiceThread extends Thread {
 			String messageContent = message.substring(spaceIndex + 1);
 
 			synchronized (clients) {
-				for (ClientServiceThread client : clients) {
+				for (clientServiceThread client : clients) {
 					if (client.getClientName().equals(toClientName)) {
 						client.outToClient.writeBytes("-Message," + this.clientName + ": " + messageContent + "\n");
 						break;
 					}
 				}
-			}
-		}
-	}
-
-	private void broadcastMessage(String message) throws IOException {
-		synchronized (clients) {
-			for (ClientServiceThread client : clients) {
-				// if (!client.getClientName().equals(this.clientName)) { // Do not send the
-				// message to the sender only the
-				// // other cluents
-				// }
-				client.outToClient.writeBytes("-Message," + this.clientName + ": " + message + "\n");
 			}
 		}
 	}
@@ -99,12 +84,7 @@ public class ClientServiceThread extends Thread {
 
 				// Notify the server if this was the last client in the list
 			} else {
-				Server.updateClientCountLabel();
-			}
-			try {
-				broadcastMessage(this.clientName + " disconnected");
-			} catch (IOException e) {
-				System.out.println("Error sending disconnect message: " + e.getMessage());
+				server.updateClientCountLabel();
 			}
 		}
 	}
@@ -124,7 +104,7 @@ public class ClientServiceThread extends Thread {
 
 		String names = new String("");
 
-		for (ClientServiceThread client : clients) {
+		for (clientServiceThread client : clients) {
 			names = names + client.clientName + ",";
 		}
 		outToClient.writeBytes("-Names," + names + "\n");

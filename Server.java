@@ -6,9 +6,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
-public class Server {
+public class server {
 
-    public static ArrayList<ClientServiceThread> Clients = new ArrayList<ClientServiceThread>();
+    public static ArrayList<clientServiceThread> Clients = new ArrayList<clientServiceThread>();
     static int clientCount = 0;
     private static JFrame frame;
     private static JLabel connectionStatusLabel;
@@ -46,7 +46,7 @@ public class Server {
                         new DataOutputStream(connectionSocket.getOutputStream()).writeBytes("Name already taken.\n");
                         connectionSocket.close();
                     } else {
-                        ClientServiceThread newClient = new ClientServiceThread(clientCount, connectionSocket,
+                        clientServiceThread newClient = new clientServiceThread(clientCount, connectionSocket,
                                 clientName, Clients);
                         Clients.add(newClient);
                         newClient.start();
@@ -72,7 +72,7 @@ public class Server {
     }
 
     public static void sendDateAndCountToAllClients() throws IOException {
-        for (ClientServiceThread client : Clients) {
+        for (clientServiceThread client : Clients) {
             client.sendDateAndCount();
         }
     }
