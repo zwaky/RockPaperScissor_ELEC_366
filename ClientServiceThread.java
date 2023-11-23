@@ -99,7 +99,7 @@ public class ClientServiceThread extends Thread {
 
 				// Notify the server if this was the last client in the list
 			} else {
-				ChatServer.updateClientCountLabel();
+				Server.updateClientCountLabel();
 			}
 			try {
 				broadcastMessage(this.clientName + " disconnected");
