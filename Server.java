@@ -8,97 +8,97 @@ import javax.swing.SwingUtilities;
 
 public class Server {
 
-
+    public static ArrayList<ClientServiceThread> Clients = new ArrayList<ClientServiceThread>();
     static int clientCount = 0;
-    private static JFrame frame
-    private static JLabel connec
-    
+    private static JFrame frame;
+    private static JLabel connectionStatusLabel;
 
-    	setupGUI();
-        ServerSocke
-        
+    public static void main(String[] args) throws Exception {
+        setupGUI();
+        ServerSocket welcomeSocket = new ServerSocket(6789);
 
+        new Thread(() -> acceptClients(welcomeSocket)).start();
         new Thread(() -> updateClientCountAndDate()).start();
-        
-    
+    }
 
-    	frame = new JFrame("Chatting Se
+    private static void setupGUI() {
+        frame = new JFrame("Chatting Server");
         frame.setLayout(null);
-        frame.setBounds(100, 1
-        frame.setDefaultCloseOperation(JFram
-        connectionStatusLabel = new JLabel("No Clients Connec
+        frame.setBounds(100, 100, 300, 300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        connectionStatusLabel = new JLabel("No Clients Connected");
         connectionStatusLabel.setBounds(80, 30, 200, 30);
         connectionStatusLabel.setForeground(Color.red);
-        frame.getContentPane().add(connectionStatusLabe
+        frame.getContentPane().add(connectionStatusLabel);
         frame.setVisible(true);
-        
-    
+    }
 
-    	while (!welcomeSocket.isClosed()) {
-        	try {
-            	Sock
+    private static void acceptClients(ServerSocket welcomeSocket) {
+        while (!welcomeSocket.isClosed()) {
+            try {
+                Socket connectionSocket = welcomeSocket.accept();
                 BufferedReader inFromClient = new BufferedReader(
-                		new InputStreamReader(connectionSocket.getInput
-                        ring clientName = inFromClient.readLine(); // Assume the f
-                
+                        new InputStreamReader(connectionSocket.getInputStream()));
+                String clientName = inFromClient.readLine(); // Assume the first message is the client's name
 
-                	if (isNameTaken(clientN
-                    	new DataOutputStream(connecti
+                synchronized (Clients) {
+                    if (isNameTaken(clientName)) {
+                        new DataOutputStream(connectionSocket.getOutputStream()).writeBytes("Name already taken.\n");
                         connectionSocket.close();
-                         else {
-                    	ClientS
-                        		clientName, Clients);
-                                ients.add(newClient);
+                    } else {
+                        ClientServiceThread newClient = new ClientServiceThread(clientCount, connectionSocket,
+                                clientName, Clients);
+                        Clients.add(newClient);
                         newClient.start();
-                        Clients.notify(); 
-                        
-                    
-                 
-            	System.out.println("Err
-                
-            
-        
-    
+                        Clients.notify(); // Notify the waiting threads of a new connection
+                    }
+                }
+            } catch (Exception ex) {
+                System.out.println("Error accepting client connection: " + ex.getMessage());
+            }
+        }
+    }
 
-    	return Clients.stream().anyMatch(client -> clien
-        
-    
+    private static boolean isNameTaken(String name) {
+        return Clients.stream().anyMatch(client -> client.getClientName().equals(name));
+    }
 
-    	SwingUtilities.invokeLater(() -> {
-        	clientCount = Clients.size();
-            connectionStatusLabel.setText
+    public static void updateClientCountLabel() {
+        SwingUtilities.invokeLater(() -> {
+            clientCount = Clients.size();
+            connectionStatusLabel.setText(clientCount + (clientCount <= 1 ? " Client" : " Clients") + " Connected");
             connectionStatusLabel.setForeground(clientCount > 0 ? Color.blue : Color.red);
-            );
-        
-    
+        });
+    }
 
-    	for (ClientServiceThread client : Clients) {
-        	client.sendDateAndCount();
-            
-        
-    
+    public static void sendDateAndCountToAllClients() throws IOException {
+        for (ClientServiceThread client : Clients) {
+            client.sendDateAndCount();
+        }
+    }
 
-    	while (true) {
-        	try {
-            	sync
-                	try {
-                    	send
+    private static void updateClientCountAndDate() {
+        while (true) {
+            try {
+                synchronized (Clients) {
+                    try {
+                        sendDateAndCountToAllClients();
                         updateClientCountLabel();
-                         catch (IOException e) {
-                    	System.out.println("Erro
+                    } catch (IOException e) {
+                        System.out.println("Error sending date and count to client: " + e.getMessage());
                         // Handle errors if a client has disconnected
-                        
-                    
+                    }
 
-                    
-                 
-            	System.out.println("Update client 
-                																							// interrupt
-                                                                                                          // appropria
-                                                                                                          interrupt(); // 
+                    Clients.wait();
+                }
+            } catch (InterruptedException ex) {
+                System.out.println("Update client count and date thread interrupted: " + ex.getMessage());// Handle the
+                                                                                                          // interrupt
+                                                                                                          // appropriately
+                Thread.currentThread().interrupt(); // Preserve interrupt status
                 break;
-                
-            
-        
-    
+            }
+        }
+    }
+
 }
