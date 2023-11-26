@@ -5,8 +5,14 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class clientServiceThread extends Thread {
+	// This class runs as a new thread every time a client connects to the server.
+	// In a sense, every client has its own personal clientServiceThread.
+	// It handles incoming and outgoing messages to the client.
+	// It contains a list of all the connected clients.
+
 	private String clientName; // Client's name
 	private Socket connectionSocket; // Client's connection socket
+
 	private ArrayList<clientServiceThread> clients; // List of all clients connected to the server
 	private DataOutputStream outToClient;
 
@@ -31,12 +37,21 @@ public class clientServiceThread extends Thread {
 
 			String clientSentence;
 
+			// Continually listen for messages from the associated client
 			while (true) {
 				clientSentence = inFromClient.readLine();
 				if (clientSentence != null) {
-					// If it is a private message, the format should be "@[name] message"
-					if (clientSentence.startsWith("@")) {
-						sendPrivateMessage(clientSentence);
+
+					// Handle different situations depending on the starting message
+					if (clientSentence.startsWith("STARTGAME")) {
+						// Start a new game
+						String[] names = clientSentence.split(", ");
+						String name1 = names[1];
+						String name2 = names[2];
+						game onGoingMatch = new game(clients, name1, name2);
+
+						// Starts the match in a new thread
+						onGoingMatch.start();
 					}
 				} else {
 					// Client disconnected
@@ -91,6 +106,14 @@ public class clientServiceThread extends Thread {
 
 	public String getClientName() {
 		return this.clientName;
+	}
+
+	public Socket getConnectionSocket() {
+		return connectionSocket;
+	}
+
+	public DataOutputStream getOutToClient() {
+		return outToClient;
 	}
 
 	public void sendDateAndCount() throws IOException {

@@ -14,8 +14,11 @@ public class client {
 	static JButton connectButton;
 	static JScrollPane connectedClientsAreaScroll;
 	static JLabel connectedClientsLabel;
+	static JButton startGameButton;
 
 	public static void main(String[] args) throws Exception {
+
+		// Main setup for UI
 		JFrame frame = new JFrame("RPS Game Client");
 		frame.setLayout(null);
 		frame.setBounds(100, 100, 500, 550);
@@ -55,10 +58,17 @@ public class client {
 		frame.getContentPane().add(connectedClientsLabel);
 		connectedClientsLabel.setVisible(false);
 
+		startGameButton = new JButton("Start Game");
+		startGameButton.setBounds(150, 90, 100, 30);
+		frame.getContentPane().add(startGameButton);
+		startGameButton.setVisible(false);
+		startGameButton.addActionListener(e -> startGameButtonAction());
+
 		frame.setVisible(true);
 	}
 
 	private static void connectButtonAction() {
+		// Connects client to server
 		try {
 			if (connectButton.getText().equals("Connect")) {
 				clientSocket = new Socket("localhost", 6789);
@@ -68,17 +78,18 @@ public class client {
 				String clientName = clientNameField.getText();
 				outToServer.writeBytes(clientName + "\n");
 
+				// After server connection, create a new thread to manage messages
 				new Thread(() -> listenForServerMessages()).start();
 
+				// Adjust UI accordingly
 				statusLabel.setText("Connected");
 				statusLabel.setForeground(Color.BLUE);
 				connectButton.setText("Disconnect");
-
 				clientNameField.setEditable(false);
-
 				connectedClientsTextArea.setVisible(true);
 				connectedClientsAreaScroll.setVisible(true);
 				connectedClientsLabel.setVisible(true);
+				startGameButton.setVisible(true);
 
 			} else {
 				clientSocket.close();
@@ -99,11 +110,34 @@ public class client {
 		}
 	}
 
+	private static void startGameButtonAction() {
+		try {
+			// TODO Create a drop down menu to fetch the proper name of the other client
+			outToServer.writeBytes("STARTGAME, " + clientNameField.getText() + ", second\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private static void listenForServerMessages() {
+		// Method listening to incoming messages. Runs in its own thread
 		try {
 			String messageFromServer;
 			while ((messageFromServer = inFromServer.readLine()) != null) {
 				// Do something
+				if (messageFromServer.startsWith("-Names,")) {
+					String[] names = messageFromServer.split(",");
+
+					StringBuilder namesText = new StringBuilder();
+					for (int i = 1; i < names.length; i++) {
+						namesText.append(names[i]).append("\n");
+					}
+
+					SwingUtilities.invokeLater(() -> connectedClientsTextArea.setText(namesText.toString()));
+
+				} else {
+					System.out.println(messageFromServer);
+				}
 			}
 		} catch (IOException e) {
 			if (e instanceof SocketException && e.getMessage().equals("Socket closed")) {
