@@ -66,15 +66,37 @@ public class client {
 
 		rockButton.setBounds(190, buttonY, buttonSize.width, buttonSize.height);
 		frame.getContentPane().add(rockButton);
+		rockButton.addActionListener(e -> {
+			try {
+				outToServer.writeBytes("ROCK\n");
+				outToServer.flush();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		});
 
 		buttonY += buttonSize.height + 20;
 		paperButton.setBounds(190, buttonY, buttonSize.width, buttonSize.height);
 		frame.getContentPane().add(paperButton);
-
+		paperButton.addActionListener(e -> {
+			try {
+				outToServer.writeBytes("PAPER\n");
+				outToServer.flush();// Send "PAPER" to the server
+			} catch (IOException ex) {
+				ex.printStackTrace(); // Handle exception
+			}
+		});
 		buttonY += buttonSize.height + 20;
 		scissorsButton.setBounds(190, buttonY, buttonSize.width, buttonSize.height);
 		frame.getContentPane().add(scissorsButton);
-
+		scissorsButton.addActionListener(e -> {
+			try {
+				outToServer.writeBytes("SCISSORS\n");
+				outToServer.flush();// Send "SCISSORS" to the server
+			} catch (IOException ex) {
+				ex.printStackTrace(); // Handle exception
+			}
+		});
 		winLossLabel = new JLabel("Win or loss declaration.");
 		winLossLabel.setBounds(20, 350, 200, 30);
 		frame.getContentPane().add(winLossLabel);

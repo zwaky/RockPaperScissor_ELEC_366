@@ -41,19 +41,38 @@ public class clientServiceThread extends Thread {
 			while (true) {
 				clientSentence = inFromClient.readLine();
 				if (clientSentence != null) {
-
+					  System.out.println("Received command: " + clientSentence); // Debugging
 					// Handle different situations depending on the starting message
 					if (clientSentence.startsWith("STARTGAME")) {
-						// Start a new game
-						String[] names = clientSentence.split(", ");
-						String name1 = names[1];
-						String name2 = names[2];
-						game onGoingMatch = new game(clients, name1, name2);
+	                    String[] names = clientSentence.split(",");
+	                    if (names.length < 3) {
+	                        System.out.println("Invalid STARTGAME command received: " + clientSentence);
+	                        continue; // Skip processing this command
+	                    }
 
-						// Starts the match in a new thread
-						onGoingMatch.start();
-						 server.broadcastAvailablePlayers();
-					}
+	                    String name1 = names[1].trim();
+	                    String name2 = names[2].trim();
+	                    
+	                    clientServiceThread player1 = this; // 'this' refers to the current clientServiceThread instance
+	                    clientServiceThread player2 = findClient(name2);
+
+	                    if (name2 != null) {
+	                        
+	                    	player1.setAvailable(false);
+	                        player2.setAvailable(false);
+	                        server.broadcastAvailablePlayers();
+
+	                        // Create and start a new game thread
+	                        game ongoingMatch = new game(clients, name1, name2);
+	                        ongoingMatch.start();
+
+	                        // You can also update all clients about the current available players
+	                        server.broadcastAvailablePlayers();
+	                    } else {
+	                        System.out.println("Player not found: " + name2);
+	                        // Optionally, send a message back to player1 stating player2 is not available
+	                    }
+	                }
 				} else {
 					// Client disconnected
 					this.disconnectClient();
@@ -65,6 +84,17 @@ public class clientServiceThread extends Thread {
 			System.out.println(this.clientName + " disconnected.");
 			this.disconnectClient();
 		}
+	}
+	
+	private clientServiceThread findClient(String name) {
+	    synchronized (clients) {
+	        for (clientServiceThread client : clients) {
+	            if (client.getClientName().equals(name)) {
+	                return client;
+	            }
+	        }
+	    }
+	    return null;
 	}
 
 	void sendPrivateMessage(String message) throws IOException {
