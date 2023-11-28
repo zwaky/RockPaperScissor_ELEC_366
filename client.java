@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import javax.swing.*;
 import java.awt.Color;
+import java.awt.Dimension;
 
 public class client {
 
@@ -18,53 +19,65 @@ public class client {
 
 	public static void main(String[] args) throws Exception {
 
-		// Main setup for UI
-		JFrame frame = new JFrame("RPS Game Client");
-		frame.setLayout(null);
-		frame.setBounds(100, 100, 500, 550);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		  JFrame frame = new JFrame("Rock Paper Scissors Game");
+          frame.setSize(450, 500);
 
-		statusLabel = new JLabel("Not Connected");
-		statusLabel.setBounds(20, 40, 150, 30);
-		statusLabel.setForeground(Color.RED);
-		frame.getContentPane().add(statusLabel);
+          JLabel statusLabel = new JLabel("Not Connected");
+          statusLabel.setBounds(20, 40, 150, 30);
+          statusLabel.setForeground(Color.RED);
+          frame.getContentPane().add(statusLabel);
 
-		connectButton = new JButton("Connect"); // Initialize connectButton here
-		connectButton.setBounds(300, 20, 100, 30);
-		frame.getContentPane().add(connectButton);
-		connectButton.addActionListener(e -> connectButtonAction());
+          JLabel nameLabel = new JLabel("Client Name:");
+          nameLabel.setBounds(20, 80, 100, 30);
+          frame.getContentPane().add(nameLabel);
 
-		JLabel labelClientName = new JLabel("Client Name:");
-		labelClientName.setBounds(20, 20, 300, 30);
-		frame.getContentPane().add(labelClientName);
+          JTextField clientNameField = new JTextField();
+          clientNameField.setBounds(120, 80, 150, 30);
+          frame.getContentPane().add(clientNameField);
 
-		clientNameField = new JTextField("");
-		clientNameField.setBounds(100, 20, 180, 30);
-		frame.getContentPane().add(clientNameField);
+          JButton connectButton = new JButton("Connect");
+          connectButton.setBounds(280, 80, 100, 30);
+          frame.getContentPane().add(connectButton);
+  		  connectButton.addActionListener(e -> connectButtonAction());
 
-		connectedClientsTextArea = new JTextArea();
-		connectedClientsTextArea.setBounds(350, 100, 120, 260);
-		connectedClientsTextArea.setEditable(false);
-		connectedClientsTextArea.setVisible(false);
-		frame.getContentPane().add(connectedClientsTextArea);
+          JLabel playWithLabel = new JLabel("Play With:");
+          playWithLabel.setBounds(20, 120, 100, 30);
+          frame.getContentPane().add(playWithLabel);
 
-		connectedClientsAreaScroll = new JScrollPane(connectedClientsTextArea);
-		connectedClientsAreaScroll.setBounds(350, 100, 120, 260);
-		connectedClientsAreaScroll.setVisible(false);
-		frame.getContentPane().add(connectedClientsAreaScroll);
+          JComboBox<String> opponentsComboBox = new JComboBox<>();
+          opponentsComboBox.setBounds(120, 120, 150, 30);
+          frame.getContentPane().add(opponentsComboBox);
 
-		connectedClientsLabel = new JLabel("Connected Clients: ");
-		connectedClientsLabel.setBounds(350, 60, 120, 30);
-		frame.getContentPane().add(connectedClientsLabel);
-		connectedClientsLabel.setVisible(false);
+          JButton playButton = new JButton("Play");
+          playButton.setBounds(280, 120, 100, 30);
+          frame.getContentPane().add(playButton);
 
-		startGameButton = new JButton("Start Game");
-		startGameButton.setBounds(150, 90, 100, 30);
-		frame.getContentPane().add(startGameButton);
-		startGameButton.setVisible(false);
-		startGameButton.addActionListener(e -> startGameButtonAction());
+          JButton rockButton = new JButton("Rock");
+          JButton paperButton = new JButton("Paper");
+          JButton scissorsButton = new JButton("Scissors");
 
-		frame.setVisible(true);
+          Dimension buttonSize = new Dimension(120, 40);
+          int buttonY = 170; 
+
+          rockButton.setBounds(190, buttonY, buttonSize.width, buttonSize.height);
+          frame.getContentPane().add(rockButton);
+
+          buttonY += buttonSize.height + 20;
+          paperButton.setBounds(190, buttonY, buttonSize.width, buttonSize.height);
+          frame.getContentPane().add(paperButton);
+
+          buttonY += buttonSize.height + 20;
+          scissorsButton.setBounds(190, buttonY, buttonSize.width, buttonSize.height);
+          frame.getContentPane().add(scissorsButton);
+
+          JLabel winLossLabel = new JLabel("Win or loss declaration.");
+          winLossLabel.setBounds(20, 350, 200, 30);
+          frame.getContentPane().add(winLossLabel);
+
+          frame.setLayout(null);
+          frame.setVisible(true);
+          frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 	}
 
 	private static void connectButtonAction() {
