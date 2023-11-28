@@ -58,6 +58,9 @@ public class game extends Thread {
                     outToClient1.writeBytes("You are player 1 \n");
                     outToClient2.writeBytes("You are player 2 \n");
 
+                    // Ask the opponent if he wants to start a match
+                    outToClient2.writeBytes("INVITATION," + clientName1 + "\n");
+
                     while (true) {
                         // TODO Run the Game
                         clientSentence1 = inFromClient1.readLine();
@@ -65,9 +68,15 @@ public class game extends Thread {
                             // Handle incoming message
                             if (clientSentence1.startsWith("GAME")) {
                                 // Do something
+                            } else if (clientSentence1.equals("ACCEPT")) {
+                                // Player 1 accepted the match invitation
+                                outToClient2.writeBytes("MATCH_ACCEPTED\n");
+                            } else if (clientSentence1.equals("DECLINE")) {
+                                // Player 1 declined the match invitation
+                                outToClient2.writeBytes("MATCH_DECLINED\n");
                             }
                         } else {
-                            // Handle disconnection
+                            // Handle disconnection of player 1
                             break;
                         }
 
@@ -76,6 +85,12 @@ public class game extends Thread {
                             // Handle incoming message
                             if (clientSentence2.startsWith("GAME")) {
                                 // Do something
+                            } else if (clientSentence2.equals("ACCEPT")) {
+                                // Player 2 accepted the match invitation
+                                outToClient1.writeBytes("MATCH_ACCEPTED\n");
+                            } else if (clientSentence2.equals("DECLINE")) {
+                                // Player 2 declined the match invitation
+                                outToClient1.writeBytes("MATCH_DECLINED\n");
                             }
                         } else {
                             // Handle disconnection
