@@ -121,6 +121,8 @@ public class client {
 	}
 
 	private static void startGameButtonAction() {
+		// Handles starting a game
+
 		startGameButton.addActionListener(e -> {
 			String selectedOpponent = (String) opponentsComboBox.getSelectedItem();
 			if (selectedOpponent != null && !selectedOpponent.isEmpty()) {
@@ -157,9 +159,11 @@ public class client {
 					String[] senderName = messageFromServer.split(",");
 
 					String answer = startMatchPrompt(senderName[1]); // Give name of orginial sender
+
+					// Sends ACCEPT or DECLINE
 					outToServer.writeBytes(answer);
 
-				} else if (messageFromServer.startsWith("MATCH_DECLINED,")) {
+				} else if (messageFromServer.startsWith("MATCH_DECLINED")) {
 
 					// Handle opponent declining the match
 					SwingUtilities.invokeLater(() -> {
@@ -167,6 +171,10 @@ public class client {
 								"Match Declined", JOptionPane.INFORMATION_MESSAGE);
 					});
 					// Change visibility of labels
+
+				} else if (messageFromServer.startsWith("MATCH_ACCEPTED")) {
+
+					// Handle opponent accepting the match
 
 				} else {
 					System.out.println(messageFromServer);
