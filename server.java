@@ -101,26 +101,4 @@ public class server {
         }
     }
 
-    public static void broadcastAvailablePlayers() {
-        StringBuilder availablePlayers = new StringBuilder();
-        synchronized (Clients) {
-            for (clientServiceThread client : Clients) {
-                if (client.isAvailable()) { // Assuming there's a method isAvailable to check if a client is in a game
-                    availablePlayers.append(client.getClientName()).append(",");
-                }
-            }
-        }
-
-        String playerList = availablePlayers.toString();
-        for (clientServiceThread client : Clients) {
-        	try {
-            client.sendPrivateMessage("-Names," + playerList);
-        	}catch (IOException e) {
-        		 e.printStackTrace();
-        	}
-        }
-    }
-
-    
-    
 }

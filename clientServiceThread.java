@@ -52,7 +52,6 @@ public class clientServiceThread extends Thread {
 
 						// Starts the match in a new thread
 						onGoingMatch.start();
-						 server.broadcastAvailablePlayers();
 					}
 				} else {
 					// Client disconnected
@@ -67,7 +66,7 @@ public class clientServiceThread extends Thread {
 		}
 	}
 
-	void sendPrivateMessage(String message) throws IOException {
+	private void sendPrivateMessage(String message) throws IOException {
 		// if the client uses the format is "@[name] message"
 		int spaceIndex = message.indexOf(" ");
 		if (spaceIndex != -1) {
@@ -117,17 +116,6 @@ public class clientServiceThread extends Thread {
 		return outToClient;
 	}
 
-	private boolean isAvailable = true;
-
-	public boolean isAvailable() {
-	    return isAvailable;
-	}
-
-	public void setAvailable(boolean available) {
-	    this.isAvailable = available;
-	}
-	
-	
 	public void sendDateAndCount() throws IOException {
 		Date now = new Date();
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("EEEE, MMMM d, yyyy  h:m:s a z");// added a date and time
