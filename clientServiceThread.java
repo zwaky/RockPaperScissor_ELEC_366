@@ -1,3 +1,9 @@
+/*
+ * Alexandre Fontaine 40158602
+ * Cameron Harte 40191553
+ * William Benetos 27766009
+ */
+
 import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
@@ -41,38 +47,38 @@ public class clientServiceThread extends Thread {
 			while (true) {
 				clientSentence = inFromClient.readLine();
 				if (clientSentence != null) {
-					  System.out.println("Received command: " + clientSentence); // Debugging
+					System.out.println("Received command: " + clientSentence); // Debugging
 					// Handle different situations depending on the starting message
 					if (clientSentence.startsWith("STARTGAME")) {
-	                    String[] names = clientSentence.split(",");
-	                    if (names.length < 3) {
-	                        System.out.println("Invalid STARTGAME command received: " + clientSentence);
-	                        continue; // Skip processing this command
-	                    }
+						String[] names = clientSentence.split(",");
+						if (names.length < 3) {
+							System.out.println("Invalid STARTGAME command received: " + clientSentence);
+							continue; // Skip processing this command
+						}
 
-	                    String name1 = names[1].trim();
-	                    String name2 = names[2].trim();
-	                    
-	                    clientServiceThread player1 = this; // 'this' refers to the current clientServiceThread instance
-	                    clientServiceThread player2 = findClient(name2);
+						String name1 = names[1].trim();
+						String name2 = names[2].trim();
 
-	                    if (name2 != null) {
-	                        
-	                    	player1.setAvailable(false);
-	                        player2.setAvailable(false);
-	                        server.broadcastAvailablePlayers();
+						clientServiceThread player1 = this; // 'this' refers to the current clientServiceThread instance
+						clientServiceThread player2 = findClient(name2);
 
-	                        // Create and start a new game thread
-	                        game ongoingMatch = new game(clients, name1, name2);
-	                        ongoingMatch.start();
+						if (name2 != null) {
 
-	                        // You can also update all clients about the current available players
-	                        server.broadcastAvailablePlayers();
-	                    } else {
-	                        System.out.println("Player not found: " + name2);
-	                        // Optionally, send a message back to player1 stating player2 is not available
-	                    }
-	                }
+							player1.setAvailable(false);
+							player2.setAvailable(false);
+							server.broadcastAvailablePlayers();
+
+							// Create and start a new game thread
+							game ongoingMatch = new game(clients, name1, name2);
+							ongoingMatch.start();
+
+							// You can also update all clients about the current available players
+							server.broadcastAvailablePlayers();
+						} else {
+							System.out.println("Player not found: " + name2);
+							// Optionally, send a message back to player1 stating player2 is not available
+						}
+					}
 				} else {
 					// Client disconnected
 					this.disconnectClient();
@@ -85,16 +91,16 @@ public class clientServiceThread extends Thread {
 			this.disconnectClient();
 		}
 	}
-	
+
 	private clientServiceThread findClient(String name) {
-	    synchronized (clients) {
-	        for (clientServiceThread client : clients) {
-	            if (client.getClientName().equals(name)) {
-	                return client;
-	            }
-	        }
-	    }
-	    return null;
+		synchronized (clients) {
+			for (clientServiceThread client : clients) {
+				if (client.getClientName().equals(name)) {
+					return client;
+				}
+			}
+		}
+		return null;
 	}
 
 	void sendPrivateMessage(String message) throws IOException {
@@ -150,14 +156,13 @@ public class clientServiceThread extends Thread {
 	private boolean isAvailable = true;
 
 	public boolean isAvailable() {
-	    return isAvailable;
+		return isAvailable;
 	}
 
 	public void setAvailable(boolean available) {
-	    this.isAvailable = available;
+		this.isAvailable = available;
 	}
-	
-	
+
 	public void sendDateAndCount() throws IOException {
 		Date now = new Date();
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("EEEE, MMMM d, yyyy  h:m:s a z");// added a date and time

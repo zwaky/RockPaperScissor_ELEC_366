@@ -1,3 +1,9 @@
+/*
+ * Alexandre Fontaine 40158602
+ * Cameron Harte 40191553
+ * William Benetos 27766009
+ */
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;

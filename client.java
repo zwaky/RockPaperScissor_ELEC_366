@@ -1,3 +1,9 @@
+/*
+ * Alexandre Fontaine 40158602
+ * Cameron Harte 40191553
+ * William Benetos 27766009
+ */
+
 import java.io.*;
 import java.net.*;
 import javax.swing.*;
@@ -168,6 +174,8 @@ public class client {
 					String[] names = messageFromServer.split(",");
 
 					StringBuilder namesText = new StringBuilder();
+					DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) opponentsComboBox.getModel();
+					model.removeAllElements();
 					for (int i = 1; i < names.length; i++) {
 						if (!names[i].equals(clientNameField.getText())) { // Exclude the current client's name
 							opponentsComboBox.addItem(names[i]);
