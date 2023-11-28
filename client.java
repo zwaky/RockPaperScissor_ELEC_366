@@ -9,20 +9,23 @@ public class client {
 	static Socket clientSocket;
 	static DataOutputStream outToServer;
 	static BufferedReader inFromServer;
-	static JTextArea connectedClientsTextArea;
 	static JLabel statusLabel;
 	static JTextField clientNameField;
 	static JButton connectButton;
-	static JScrollPane connectedClientsAreaScroll;
 	static JLabel connectedClientsLabel;
 	static JButton startGameButton;
-
+    static JComboBox<String> opponentsComboBox;
+    static JButton playButton;
+    static JButton rockButton;
+    static JButton paperButton;
+    static JButton scissorsButton;
+    static JLabel winLossLabel;
 	public static void main(String[] args) throws Exception {
 
 		  JFrame frame = new JFrame("Rock Paper Scissors Game");
           frame.setSize(450, 500);
 
-          JLabel statusLabel = new JLabel("Not Connected");
+          statusLabel = new JLabel("Not Connected");
           statusLabel.setBounds(20, 40, 150, 30);
           statusLabel.setForeground(Color.RED);
           frame.getContentPane().add(statusLabel);
@@ -31,11 +34,11 @@ public class client {
           nameLabel.setBounds(20, 80, 100, 30);
           frame.getContentPane().add(nameLabel);
 
-          JTextField clientNameField = new JTextField();
+          clientNameField = new JTextField();
           clientNameField.setBounds(120, 80, 150, 30);
           frame.getContentPane().add(clientNameField);
 
-          JButton connectButton = new JButton("Connect");
+          connectButton = new JButton("Connect");
           connectButton.setBounds(280, 80, 100, 30);
           frame.getContentPane().add(connectButton);
   		  connectButton.addActionListener(e -> connectButtonAction());
@@ -44,17 +47,17 @@ public class client {
           playWithLabel.setBounds(20, 120, 100, 30);
           frame.getContentPane().add(playWithLabel);
 
-          JComboBox<String> opponentsComboBox = new JComboBox<>();
+          opponentsComboBox = new JComboBox<>();
           opponentsComboBox.setBounds(120, 120, 150, 30);
           frame.getContentPane().add(opponentsComboBox);
 
-          JButton playButton = new JButton("Play");
-          playButton.setBounds(280, 120, 100, 30);
-          frame.getContentPane().add(playButton);
+          startGameButton = new JButton("Play");
+          startGameButton.setBounds(280, 120, 100, 30);
+          frame.getContentPane().add(startGameButton);
 
-          JButton rockButton = new JButton("Rock");
-          JButton paperButton = new JButton("Paper");
-          JButton scissorsButton = new JButton("Scissors");
+          rockButton = new JButton("Rock");
+          paperButton = new JButton("Paper");
+          scissorsButton = new JButton("Scissors");
 
           Dimension buttonSize = new Dimension(120, 40);
           int buttonY = 170; 
@@ -70,7 +73,7 @@ public class client {
           scissorsButton.setBounds(190, buttonY, buttonSize.width, buttonSize.height);
           frame.getContentPane().add(scissorsButton);
 
-          JLabel winLossLabel = new JLabel("Win or loss declaration.");
+          winLossLabel = new JLabel("Win or loss declaration.");
           winLossLabel.setBounds(20, 350, 200, 30);
           frame.getContentPane().add(winLossLabel);
 
@@ -99,9 +102,6 @@ public class client {
 				statusLabel.setForeground(Color.BLUE);
 				connectButton.setText("Disconnect");
 				clientNameField.setEditable(false);
-				connectedClientsTextArea.setVisible(true);
-				connectedClientsAreaScroll.setVisible(true);
-				connectedClientsLabel.setVisible(true);
 				startGameButton.setVisible(true);
 
 			} else {
@@ -110,12 +110,7 @@ public class client {
 				statusLabel.setText("Not Connected");
 				statusLabel.setForeground(Color.RED);
 				connectButton.setText("Connect");
-
 				clientNameField.setEditable(true);
-
-				connectedClientsTextArea.setVisible(false);
-				connectedClientsAreaScroll.setVisible(false);
-				connectedClientsLabel.setVisible(false);
 
 			}
 		} catch (IOException ex) {
@@ -146,7 +141,7 @@ public class client {
 						namesText.append(names[i]).append("\n");
 					}
 
-					SwingUtilities.invokeLater(() -> connectedClientsTextArea.setText(namesText.toString()));
+				//	SwingUtilities.invokeLater(() -> connectedClientsTextArea.setText(namesText.toString())); 
 
 				} else {
 					System.out.println(messageFromServer);
