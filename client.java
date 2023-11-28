@@ -15,6 +15,9 @@ public class client {
 	static Socket clientSocket;
 	static DataOutputStream outToServer;
 	static BufferedReader inFromServer;
+	static Socket gameServerSocket;
+	static DataOutputStream outToGameServer;
+	static BufferedReader inFromGameServer;
 	static JLabel statusLabel;
 	static JTextField clientNameField;
 	static JButton connectButton;
@@ -74,8 +77,8 @@ public class client {
 		frame.getContentPane().add(rockButton);
 		rockButton.addActionListener(e -> {
 			try {
-				outToServer.writeBytes("ROCK\n");
-				outToServer.flush();
+				outToGameServer.writeBytes("ROCK\n");
+				outToGameServer.flush();
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
@@ -86,8 +89,8 @@ public class client {
 		frame.getContentPane().add(paperButton);
 		paperButton.addActionListener(e -> {
 			try {
-				outToServer.writeBytes("PAPER\n");
-				outToServer.flush();// Send "PAPER" to the server
+				outToGameServer.writeBytes("PAPER\n");
+				outToGameServer.flush();// Send "PAPER" to the server
 			} catch (IOException ex) {
 				ex.printStackTrace(); // Handle exception
 			}
@@ -97,8 +100,8 @@ public class client {
 		frame.getContentPane().add(scissorsButton);
 		scissorsButton.addActionListener(e -> {
 			try {
-				outToServer.writeBytes("SCISSORS\n");
-				outToServer.flush();// Send "SCISSORS" to the server
+				outToGameServer.writeBytes("SCISSORS\n");
+				outToGameServer.flush();// Send "SCISSORS" to the server
 			} catch (IOException ex) {
 				ex.printStackTrace(); // Handle exception
 			}
@@ -185,7 +188,48 @@ public class client {
 					// SwingUtilities.invokeLater(() ->
 					// connectedClientsTextArea.setText(namesText.toString()));
 
-				} else if (messageFromServer.startsWith("INVITATION,")) {
+				} else if (messageFromServer.startsWith("GAME_SERVER")) {
+					// Connect to new server
+					String[] serverDetails = messageFromServer.split(",");
+					if (serverDetails.length == 3) {
+						String serverIP = serverDetails[1].trim();
+						int serverPort = Integer.parseInt(serverDetails[2].trim());
+
+						// Connect to the game server
+						gameServerSocket = new Socket(serverIP, serverPort);
+						outToGameServer = new DataOutputStream(gameServerSocket.getOutputStream());
+						inFromGameServer = new BufferedReader(new InputStreamReader(gameServerSocket.getInputStream()));
+
+						outToGameServer
+								.writeBytes("Client " + clientNameField.getText() + "is connected to game server\n");
+
+						// After server connection, create a new thread to manage messages
+						new Thread(() -> listenForGameServerMessages()).start();
+					}
+				} else {
+					System.out.println(messageFromServer);
+				}
+			}
+		} catch (
+
+		IOException e) {
+			if (e instanceof SocketException && e.getMessage().equals("Socket closed")) {
+				// Handle if this was the last connected client
+
+			} else {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private static void listenForGameServerMessages() {
+		// Method listening to incoming messages. Runs in its own thread
+		try {
+			String messageFromServer;
+			while ((messageFromServer = inFromServer.readLine()) != null) {
+				// Do something
+				if (messageFromServer.startsWith("INVITATION,")) {
+
 					String[] senderName = messageFromServer.split(",");
 
 					String answer = startMatchPrompt(senderName[1]); // Give name of orginial sender

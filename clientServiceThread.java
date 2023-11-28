@@ -20,7 +20,7 @@ public class clientServiceThread extends Thread {
 	private Socket connectionSocket; // Client's connection socket
 
 	private ArrayList<clientServiceThread> clients; // List of all clients connected to the server
-	private DataOutputStream outToClient;
+	public DataOutputStream outToClient;
 
 	public clientServiceThread(int number, Socket connectionSocket, String clientName,
 			ArrayList<clientServiceThread> clients) {

@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -17,15 +18,46 @@ public class game extends Thread {
     // Handles the steps of a match
     // Gets destroyed at the end
 
+    private ServerSocket gameServer;
     private ArrayList<clientServiceThread> clients; // List of all clients connected to the server
     private String clientName1, clientName2; // Client's name
     private Socket client1_connectionSocket, client2_connectionSocket;
     private DataOutputStream outToClient1, outToClient2;
+    private int gameServerPort;
 
     public game(ArrayList<clientServiceThread> clients, String clientName1, String clientName2) {
         this.clients = clients;
         this.clientName1 = clientName1;
         this.clientName2 = clientName2;
+
+        try {
+            // Create a new server socket for the game
+            gameServer = new ServerSocket(0);
+            gameServerPort = gameServer.getLocalPort();
+
+            // Communicate the game server socket details to clients
+            sendServertoClients();
+
+        } catch (IOException e) {
+            e.printStackTrace(); // Handle the exception
+        }
+    }
+
+    private void sendServertoClients() {
+        String message = "GAME_SERVER," + gameServer.getInetAddress().getHostAddress() + "," + gameServerPort + "\n";
+
+        clientServiceThread client1 = getClient(clientName1);
+        clientServiceThread client2 = getClient(clientName2);
+
+        try {
+            client1.outToClient.writeBytes(message);
+            client2.outToClient.writeBytes(message);
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+
     }
 
     public void run() {
@@ -51,7 +83,27 @@ public class game extends Thread {
 
             outToClient1.writeBytes("Your turn. Choose ROCK, PAPER, or SCISSORS\n");
             outToClient2.writeBytes("Your turn. Choose ROCK, PAPER, or SCISSORS\n");
-            // Continually listen for incoming messages from either client
+
+            String player1Choice = inFromClient1.readLine();
+            String player2Choice = inFromClient2.readLine();
+
+            // Continually listen for messages from the associated client
+            while (true) {
+                player1Choice = inFromClient1.readLine();
+                if (player1Choice != null) {
+                    System.out.println("Received command: " + player1Choice); // Debugging
+                    // Handle different situations depending on the starting message
+                    if (player1Choice.startsWith("SOMETHING")) {
+                        // Do something
+
+                    } else {
+                        System.out.println("Hello from client 1:     " + player1Choice);
+                    }
+                } else {
+                    // Client disconnected
+                    break;
+                }
+            }
 
             // // Ask the opponent if he wants to start a match
             // outToClient2.writeBytes("INVITATION," + clientName1 + "\n");
@@ -66,9 +118,6 @@ public class game extends Thread {
             // // Player 2 declined the match invitation
             // outToClient1.writeBytes("MATCH_DECLINED\n");
             // }
-
-            String player1Choice = inFromClient1.readLine();
-            String player2Choice = inFromClient2.readLine();
 
             String result = determineWinner(player1Choice, player2Choice);
             outToClient1.writeBytes(result + "\n");
