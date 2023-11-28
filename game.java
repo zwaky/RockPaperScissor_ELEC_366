@@ -1,3 +1,9 @@
+/*
+ * Alexandre Fontaine 40158602
+ * Cameron Harte 40191553
+ * William Benetos 27766009
+ */
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -23,71 +29,71 @@ public class game extends Thread {
     }
 
     public void run() {
-        System.out.println("Attempting to start match");
-
-        // Find each client in the array list and fetch the appropriate connections
+        System.out.println("Starting match between " + clientName1 + " and " + clientName2);
 
         clientServiceThread client1 = getClient(clientName1);
         clientServiceThread client2 = getClient(clientName2);
 
         if (client1 == null || client2 == null) {
-            // Handle case where one or both clients are not found
+            System.out.println("One of the players is not available.");
             return;
         }
 
-        synchronized (client1) {
-            synchronized (client2) {
+        try {
+            // Setup output and input streams for both clients
+            outToClient1 = client1.getOutToClient();
+            outToClient2 = client2.getOutToClient();
 
-                client1_connectionSocket = client1.getConnectionSocket();
-                client2_connectionSocket = client2.getConnectionSocket();
+            BufferedReader inFromClient1 = new BufferedReader(
+                    new InputStreamReader(client1.getConnectionSocket().getInputStream()));
+            BufferedReader inFromClient2 = new BufferedReader(
+                    new InputStreamReader(client2.getConnectionSocket().getInputStream()));
 
-                outToClient1 = client1.getOutToClient();
-                outToClient2 = client2.getOutToClient();
+            outToClient1.writeBytes("Your turn. Choose ROCK, PAPER, or SCISSORS\n");
+            outToClient2.writeBytes("Your turn. Choose ROCK, PAPER, or SCISSORS\n");
+            // Continually listen for incoming messages from either client
 
-                // Get input stream from both clients
-                try {
-                    BufferedReader inFromClient1 = new BufferedReader(
-                            new InputStreamReader(client1_connectionSocket.getInputStream()));
+            // // Ask the opponent if he wants to start a match
+            // outToClient2.writeBytes("INVITATION," + clientName1 + "\n");
 
-                    BufferedReader inFromClient2 = new BufferedReader(
-                            new InputStreamReader(client2_connectionSocket.getInputStream()));
+            // if (clientSentence2.startsWith("GAME")) {
+            // // Do something
+            // } else if (clientSentence2.equals("ACCEPT")) {
+            // // Player 2 accepted the match invitation
 
-                    // Continually listen for incoming messages from either client
-                    String clientSentence1, clientSentence2;
+            // outToClient1.writeBytes("MATCH_ACCEPTED\n");
+            // } else if (clientSentence2.equals("DECLINE")) {
+            // // Player 2 declined the match invitation
+            // outToClient1.writeBytes("MATCH_DECLINED\n");
+            // }
 
-                    outToClient1.writeBytes("You are player 1 \n");
-                    outToClient2.writeBytes("You are player 2 \n");
+            String player1Choice = inFromClient1.readLine();
+            String player2Choice = inFromClient2.readLine();
 
-                    while (true) {
-                        // TODO Run the Game
-                        clientSentence1 = inFromClient1.readLine();
-                        if (clientSentence1 != null) {
-                            // Handle incoming message
-                            if (clientSentence1.startsWith("GAME")) {
-                                // Do something
-                            }
-                        } else {
-                            // Handle disconnection
-                            break;
-                        }
+            String result = determineWinner(player1Choice, player2Choice);
+            outToClient1.writeBytes(result + "\n");
+            outToClient2.writeBytes(result + "\n");
 
-                        clientSentence2 = inFromClient2.readLine();
-                        if (clientSentence2 != null) {
-                            // Handle incoming message
-                            if (clientSentence2.startsWith("GAME")) {
-                                // Do something
-                            }
-                        } else {
-                            // Handle disconnection
-                            break;
-                        }
+        } catch (IOException ex) {
+            System.out.println("Error in game: " + ex.getMessage());
+            // Handle disconnection
+        } finally {
+            // Update availability after the game ends
+            client1.setAvailable(true);
+            client2.setAvailable(true);
+            server.broadcastAvailablePlayers();
+        }
+    }
 
-                    }
-
-                } catch (IOException ex) {
-                    // Handle disconnection
-                }
-            }
+    private String determineWinner(String player1Choice, String player2Choice) {
+        if (player1Choice.equals(player2Choice)) {
+            return "It's a tie!";
+        } else if ((player1Choice.equals("ROCK") && player2Choice.equals("SCISSORS")) ||
+                (player1Choice.equals("PAPER") && player2Choice.equals("ROCK")) ||
+                (player1Choice.equals("SCISSORS") && player2Choice.equals("PAPER"))) {
+            return clientName1 + " wins!";
+        } else {
+            return clientName2 + " wins!";
         }
     }
 

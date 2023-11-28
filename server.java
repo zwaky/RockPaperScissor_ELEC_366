@@ -1,3 +1,9 @@
+/*
+ * Alexandre Fontaine 40158602
+ * Cameron Harte 40191553
+ * William Benetos 27766009
+ */
+
 import java.awt.Color;
 import java.io.*;
 import java.net.*;
@@ -113,14 +119,12 @@ public class server {
 
         String playerList = availablePlayers.toString();
         for (clientServiceThread client : Clients) {
-        	try {
-            client.sendPrivateMessage("-Names," + playerList);
-        	}catch (IOException e) {
-        		 e.printStackTrace();
-        	}
+            try {
+                client.sendPrivateMessage("-Names," + playerList);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    
-    
 }
