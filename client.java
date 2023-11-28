@@ -9,20 +9,23 @@ public class client {
 	static Socket clientSocket;
 	static DataOutputStream outToServer;
 	static BufferedReader inFromServer;
-	static JTextArea connectedClientsTextArea;
 	static JLabel statusLabel;
 	static JTextField clientNameField;
 	static JButton connectButton;
-	static JScrollPane connectedClientsAreaScroll;
 	static JLabel connectedClientsLabel;
 	static JButton startGameButton;
-
+    static JComboBox<String> opponentsComboBox;
+    static JButton playButton;
+    static JButton rockButton;
+    static JButton paperButton;
+    static JButton scissorsButton;
+    static JLabel winLossLabel;
 	public static void main(String[] args) throws Exception {
-
+		
 		  JFrame frame = new JFrame("Rock Paper Scissors Game");
           frame.setSize(450, 500);
 
-          JLabel statusLabel = new JLabel("Not Connected");
+          statusLabel = new JLabel("Not Connected");
           statusLabel.setBounds(20, 40, 150, 30);
           statusLabel.setForeground(Color.RED);
           frame.getContentPane().add(statusLabel);
@@ -31,11 +34,11 @@ public class client {
           nameLabel.setBounds(20, 80, 100, 30);
           frame.getContentPane().add(nameLabel);
 
-          JTextField clientNameField = new JTextField();
+          clientNameField = new JTextField();
           clientNameField.setBounds(120, 80, 150, 30);
           frame.getContentPane().add(clientNameField);
 
-          JButton connectButton = new JButton("Connect");
+          connectButton = new JButton("Connect");
           connectButton.setBounds(280, 80, 100, 30);
           frame.getContentPane().add(connectButton);
   		  connectButton.addActionListener(e -> connectButtonAction());
@@ -44,33 +47,56 @@ public class client {
           playWithLabel.setBounds(20, 120, 100, 30);
           frame.getContentPane().add(playWithLabel);
 
-          JComboBox<String> opponentsComboBox = new JComboBox<>();
+          opponentsComboBox = new JComboBox<>();
           opponentsComboBox.setBounds(120, 120, 150, 30);
           frame.getContentPane().add(opponentsComboBox);
 
-          JButton playButton = new JButton("Play");
-          playButton.setBounds(280, 120, 100, 30);
-          frame.getContentPane().add(playButton);
-
-          JButton rockButton = new JButton("Rock");
-          JButton paperButton = new JButton("Paper");
-          JButton scissorsButton = new JButton("Scissors");
+          startGameButton = new JButton("Play");
+          startGameButton.setBounds(280, 120, 100, 30);
+          frame.getContentPane().add(startGameButton);
+          startGameButtonAction();
+          
+          rockButton = new JButton("Rock");
+          paperButton = new JButton("Paper");
+          scissorsButton = new JButton("Scissors");
 
           Dimension buttonSize = new Dimension(120, 40);
           int buttonY = 170; 
 
           rockButton.setBounds(190, buttonY, buttonSize.width, buttonSize.height);
           frame.getContentPane().add(rockButton);
-
+          rockButton.addActionListener(e -> {
+        	    try {
+        	        outToServer.writeBytes("ROCK\n");
+        	        outToServer.flush();
+        	    } catch (IOException ex) {
+        	        ex.printStackTrace();
+        	    }
+        	});
+          
           buttonY += buttonSize.height + 20;
           paperButton.setBounds(190, buttonY, buttonSize.width, buttonSize.height);
           frame.getContentPane().add(paperButton);
-
+          paperButton.addActionListener(e -> {
+        	    try {
+        	        outToServer.writeBytes("PAPER\n");
+        	        outToServer.flush();// Send "PAPER" to the server
+        	    } catch (IOException ex) {
+        	        ex.printStackTrace(); // Handle exception
+        	    }
+        	});
           buttonY += buttonSize.height + 20;
           scissorsButton.setBounds(190, buttonY, buttonSize.width, buttonSize.height);
           frame.getContentPane().add(scissorsButton);
-
-          JLabel winLossLabel = new JLabel("Win or loss declaration.");
+          scissorsButton.addActionListener(e -> {
+        	    try {
+        	        outToServer.writeBytes("SCISSORS\n");
+        	        outToServer.flush();// Send "SCISSORS" to the server
+        	    } catch (IOException ex) {
+        	        ex.printStackTrace(); // Handle exception
+        	    }
+        	});
+          winLossLabel = new JLabel("Win or loss declaration.");
           winLossLabel.setBounds(20, 350, 200, 30);
           frame.getContentPane().add(winLossLabel);
 
@@ -99,9 +125,6 @@ public class client {
 				statusLabel.setForeground(Color.BLUE);
 				connectButton.setText("Disconnect");
 				clientNameField.setEditable(false);
-				connectedClientsTextArea.setVisible(true);
-				connectedClientsAreaScroll.setVisible(true);
-				connectedClientsLabel.setVisible(true);
 				startGameButton.setVisible(true);
 
 			} else {
@@ -110,26 +133,28 @@ public class client {
 				statusLabel.setText("Not Connected");
 				statusLabel.setForeground(Color.RED);
 				connectButton.setText("Connect");
-
 				clientNameField.setEditable(true);
-
-				connectedClientsTextArea.setVisible(false);
-				connectedClientsAreaScroll.setVisible(false);
-				connectedClientsLabel.setVisible(false);
 
 			}
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
 	}
-
+	
+	
+	
 	private static void startGameButtonAction() {
-		try {
-			// TODO Create a drop down menu to fetch the proper name of the other client
-			outToServer.writeBytes("STARTGAME, " + clientNameField.getText() + ", second\n");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	    startGameButton.addActionListener(e -> {
+	        String selectedOpponent = (String) opponentsComboBox.getSelectedItem();
+	        if (selectedOpponent != null && !selectedOpponent.isEmpty()) {
+	            try {
+	                outToServer.writeBytes("STARTGAME," + clientNameField.getText() + "," + selectedOpponent + "\n");
+	                opponentsComboBox.setEnabled(false); // Disable the combo box during the game
+	            } catch (IOException ex) {
+	                ex.printStackTrace();
+	            }
+	        }
+	    });
 	}
 
 	private static void listenForServerMessages() {
@@ -143,10 +168,12 @@ public class client {
 
 					StringBuilder namesText = new StringBuilder();
 					for (int i = 1; i < names.length; i++) {
-						namesText.append(names[i]).append("\n");
+						  if (!names[i].equals(clientNameField.getText())) { // Exclude the current client's name
+				                opponentsComboBox.addItem(names[i]);
+				            }
 					}
 
-					SwingUtilities.invokeLater(() -> connectedClientsTextArea.setText(namesText.toString()));
+				//	SwingUtilities.invokeLater(() -> connectedClientsTextArea.setText(namesText.toString())); 
 
 				} else {
 					System.out.println(messageFromServer);
