@@ -21,7 +21,7 @@ public class client {
     static JButton scissorsButton;
     static JLabel winLossLabel;
 	public static void main(String[] args) throws Exception {
-
+		
 		  JFrame frame = new JFrame("Rock Paper Scissors Game");
           frame.setSize(450, 500);
 
@@ -54,7 +54,8 @@ public class client {
           startGameButton = new JButton("Play");
           startGameButton.setBounds(280, 120, 100, 30);
           frame.getContentPane().add(startGameButton);
-
+          startGameButtonAction();
+          
           rockButton = new JButton("Rock");
           paperButton = new JButton("Paper");
           scissorsButton = new JButton("Scissors");
@@ -117,14 +118,21 @@ public class client {
 			ex.printStackTrace();
 		}
 	}
-
+	
+	
+	
 	private static void startGameButtonAction() {
-		try {
-			// TODO Create a drop down menu to fetch the proper name of the other client
-			outToServer.writeBytes("STARTGAME, " + clientNameField.getText() + ", second\n");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	    startGameButton.addActionListener(e -> {
+	        String selectedOpponent = (String) opponentsComboBox.getSelectedItem();
+	        if (selectedOpponent != null && !selectedOpponent.isEmpty()) {
+	            try {
+	                outToServer.writeBytes("STARTGAME," + clientNameField.getText() + "," + selectedOpponent + "\n");
+	                opponentsComboBox.setEnabled(false); // Disable the combo box during the game
+	            } catch (IOException ex) {
+	                ex.printStackTrace();
+	            }
+	        }
+	    });
 	}
 
 	private static void listenForServerMessages() {
@@ -138,7 +146,9 @@ public class client {
 
 					StringBuilder namesText = new StringBuilder();
 					for (int i = 1; i < names.length; i++) {
-						namesText.append(names[i]).append("\n");
+						  if (!names[i].equals(clientNameField.getText())) { // Exclude the current client's name
+				                opponentsComboBox.addItem(names[i]);
+				            }
 					}
 
 				//	SwingUtilities.invokeLater(() -> connectedClientsTextArea.setText(namesText.toString())); 
